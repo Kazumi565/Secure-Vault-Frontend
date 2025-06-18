@@ -22,10 +22,18 @@ function LoginPage() {
     setError('');
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/login', new URLSearchParams({
-        username: email,
-        password: password
-      }));
+      const response = await axios.post(
+        'http://127.0.0.1:8000/login',
+        new URLSearchParams({
+          username: email,
+          password: password,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
 
       const token = response.data.access_token;
       localStorage.setItem('token', token);
@@ -53,15 +61,19 @@ function LoginPage() {
       <form onSubmit={handleLogin}>
         <div>
           <label>{t('Email')}:</label>{' '}
-          <input type="text" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
         <div>
           <label>{t('Password')}:</label>{' '}
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
         <button type="submit">{t('Login')}</button>
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
+
+      <p style={{ marginTop: '1rem' }}>
+        <Link to="/forgot-password">{t('Forgot your password?')}</Link>
+      </p>
 
       <p style={{ marginTop: '1rem' }}>
         {t("Don't have an account?")}{' '}
