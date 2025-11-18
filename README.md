@@ -1,70 +1,81 @@
-# Getting Started with Create React App
+# Secure Vault Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React frontend for the Secure Vault file storage platform. The app consumes the Secure Vault API and supports login, registration, verification, secure token handling, file management, admin audit controls, and rich profile management (including avatar uploads).
 
-## Available Scripts
+## Prerequisites
 
-In the project directory, you can run:
+- Node.js 20+
+- npm 10+
+- Access to a running Secure Vault backend API
 
-### `npm start`
+## Environment configuration
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Copy the provided example file and adjust it to match your deployment:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+cp .env.example .env
+```
 
-### `npm test`
+| Variable | Description |
+| --- | --- |
+| `REACT_APP_API_URL` | Base URL of the backend API (e.g., `https://api.securevault.local`). |
+| `REACT_APP_USE_HTTP_ONLY_COOKIE` | `true` when the backend issues an HTTP-only cookie for auth. Set to `false` only when using token fallback storage. |
+| `REACT_APP_DEMO_EMAIL` | Optional email address that will be pre-filled when clicking the “Use demo account” button. |
+| `REACT_APP_DEMO_PASSWORD` | Optional demo password. |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Available scripts
 
-### `npm run build`
+| Command | Description |
+| --- | --- |
+| `npm start` | Runs the development server with hot reload. |
+| `npm run build` | Produces a production build inside `build/`. |
+| `npm run lint` | Runs ESLint on the `src/` directory. |
+| `npm test` | Executes the Jest and React Testing Library test suites in CI-friendly mode. |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Security & auth model
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **HTTP-only cookie mode (recommended):** set `REACT_APP_USE_HTTP_ONLY_COOKIE=true`. The frontend will never store tokens locally and will rely on backend cookies plus `fetch` requests that include credentials.
+- **Token fallback mode:** set the flag to `false` only when the backend cannot issue cookies. Tokens are stored in memory with a localStorage fallback and the app automatically logs out whenever an authenticated request fails.
+- All API requests go through the centralized `apiClient`, which injects the base URL, credentials, and logout-on-401 handling.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Demo / test account
 
-### `npm run eject`
+Clicking “Use demo account” on the login screen pre-fills the credentials defined in `.env`. Update `REACT_APP_DEMO_EMAIL` and `REACT_APP_DEMO_PASSWORD` with the test account you provision on the backend. See `README.md` for usage notes and disable the demo account in production environments.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Login, registration & verification flow
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. Registration (`/register`) calls `POST /register` and redirects to `/verified?pending=true` to remind users to confirm their email.
+2. Verification links from the backend should redirect to `/verified?token=<token>`; the page will call `POST /verify-email` and display the result.
+3. Login (`/`) calls `POST /login`. If the API responds with `requires_verification`, the user is redirected back to `/verified?pending=true`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Profile management
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- Profile details (full name, avatar, verification status) are loaded from `GET /me`.
+- Avatar uploads are cropped client-side and uploaded via `PATCH /me/profile-picture` using `multipart/form-data`.
+- Additional actions include name change, password change, resend verification email, and account deletion.
 
-## Learn More
+## File dashboard & admin tools
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- The dashboard uses the API wrapper for all file operations, including uploads, downloads, previews, search, and storage usage.
+- Admins can review logs, export CSV files, and delete uploaded files from the audit screen.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Docker deployment
 
-### Code Splitting
+A production-ready container is provided:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+docker build -t secure-vault-frontend .
+docker run -p 8080:80 --env-file .env secure-vault-frontend
+```
 
-### Analyzing the Bundle Size
+The bundled `nginx.conf` enforces HTTPS redirection (when behind a proxy) and sends HSTS headers. The default server also exposes `/healthz` for liveness checks.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Continuous integration
 
-### Making a Progressive Web App
+GitHub Actions (`.github/workflows/ci.yml`) run `npm ci`, `npm run lint`, `npm test`, and `npm run build` on every push and pull request targeting `main`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Testing
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Unit tests cover the auth UI, the API client, and the profile upload helper (`npm test`).
+- ESLint ensures code quality (`npm run lint`).
+- For end-to-end testing you can layer Cypress on top of this setup; install it as a dev dependency and extend the CI workflow as needed.

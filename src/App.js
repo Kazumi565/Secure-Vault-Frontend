@@ -23,7 +23,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage setTheme={setTheme} theme={theme} />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard setTheme={setTheme} theme={theme} />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin/audit" element={<AdminAudit />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/verified" element={<Verified />} />

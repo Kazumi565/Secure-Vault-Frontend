@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import apiClient from './api/client';
 
 function Register() {
   const [email, setEmail]         = useState('');
@@ -37,15 +37,14 @@ function Register() {
     }
 
     try {
-      await axios.post('http://127.0.0.1:8000/register', {
+      await apiClient.post('/register', {
         email,
         password,
         full_name: ''
       });
-      alert(t('Account created! You can now log in.'));
-      navigate('/');
+      navigate(`/verified?pending=true&email=${encodeURIComponent(email)}`);
     } catch (err) {
-      setError(err.response?.data?.detail || t('Registration failed.'));
+      setError(err?.data?.detail || t('Registration failed.'));
     }
   };
 
