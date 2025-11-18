@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import apiClient from './api/client';
 
 function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -24,7 +24,7 @@ function ResetPassword() {
     }
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/reset-password', {
+      await apiClient.post('/reset-password', {
         token,
         new_password: password
       });
@@ -32,7 +32,7 @@ function ResetPassword() {
       setSuccess(true);
       setTimeout(() => navigate('/'), 3000);
     } catch (err) {
-      if (err.response?.data?.detail === "New password must be different from the old one") {
+      if (err?.data?.detail === 'New password must be different from the old one') {
         setError('New password must be different from your previous one.');
       } else {
         setError('❌ Failed to reset password. The token may be invalid or expired.');
