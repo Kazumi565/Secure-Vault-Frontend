@@ -1,6 +1,33 @@
 import { useEffect, useEffectEvent, useRef } from 'react';
 import { File, FileImage, FileText, FileVideo, Music, ShieldCheck, X } from 'lucide-react';
 import { useVault } from './context';
+import { api, saveBlob } from './api';
+import { DEMO_MODE } from './demo/config';
+
+export function DownloadLink({ path, filename, children, ...props }) {
+  const { setNotice } = useVault();
+  return (
+    <a
+      {...props}
+      href={DEMO_MODE ? '#' : '/api' + path}
+      onClick={
+        DEMO_MODE
+          ? async (event) => {
+              event.preventDefault();
+              try {
+                const result = await api(path, { blob: true });
+                saveBlob(result.blob, filename);
+              } catch (error) {
+                setNotice(error.message);
+              }
+            }
+          : undefined
+      }
+    >
+      {children}
+    </a>
+  );
+}
 
 export function Brand() {
   return (

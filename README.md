@@ -2,6 +2,21 @@
 
 The React interface for [Secure Vault](https://github.com/Kazumi565/Secure-Vault), with file organization, upload progress, versions, trash, expiring sharing links, and account security controls.
 
+**[Try the interactive demo](https://kazumi565.github.io/Secure-Vault-Frontend/)** · [Demo setup and limitations](docs/DEMO.md)
+
+The demo opens immediately with sample files. Changes and selected file contents stay in tab memory and reset on refresh. Authentication, encryption, and sharing are simulated; it is an interface showcase rather than a hosted vault.
+
+## Run the demo
+
+No backend or account is needed:
+
+```powershell
+npm ci
+npm run demo
+```
+
+Open **http://localhost:3000/Secure-Vault-Frontend/**. For a production-style static preview, run `npm run build:demo` followed by `npm run preview:demo`.
+
 ## Development
 
 Requires Node.js 22.12 or later and the matching v2 backend running on port 8000.

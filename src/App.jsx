@@ -19,6 +19,9 @@ import { AuthPage, SharedFile } from './AuthPages';
 import Dashboard from './Dashboard';
 import Settings from './Settings';
 import Activity from './Activity';
+import { DEMO_MODE } from './demo/config';
+import DemoBanner from './demo/DemoBanner';
+import DemoSettings from './demo/DemoSettings';
 
 function Shell() {
   const { user, loading, t, theme, setTheme, language, setLanguage, logout, refreshUser, setNotice } =
@@ -66,7 +69,7 @@ function Shell() {
         <Link to="/files" className="brand-link">
           <Brand />
         </Link>
-        <div className="workspace-label">PERSONAL WORKSPACE</div>
+        <div className="workspace-label">{DEMO_MODE ? 'DEMO WORKSPACE' : 'PERSONAL WORKSPACE'}</div>
         <nav>
           {links.map(([href, label, Icon]) => (
             <NavLink to={href} key={href}>
@@ -131,28 +134,32 @@ function Shell() {
             <strong>{user.full_name || 'My account'}</strong>
             <small>{user.email}</small>
           </div>
-          <button
-            className="icon-button"
-            aria-label={t('Sign out')}
-            onClick={() => logout().catch((e) => setNotice(e.message))}
-          >
-            <LogOut size={17} />
-          </button>
+          {!DEMO_MODE && (
+            <button
+              className="icon-button"
+              aria-label={t('Sign out')}
+              onClick={() => logout().catch((e) => setNotice(e.message))}
+            >
+              <LogOut size={17} />
+            </button>
+          )}
         </div>
       </aside>
       <div className="main-column">
         <header className="topbar">
           <span>
-            <span className="status-dot" /> Personal vault
+            <span className="status-dot" /> {DEMO_MODE ? 'Explore Secure Vault' : 'Personal vault'}
           </span>
           <div>
-            <button
-              className="icon-button mobile-signout"
-              aria-label={t('Sign out')}
-              onClick={() => logout().catch((e) => setNotice(e.message))}
-            >
-              <LogOut size={18} />
-            </button>
+            {!DEMO_MODE && (
+              <button
+                className="icon-button mobile-signout"
+                aria-label={t('Sign out')}
+                onClick={() => logout().catch((e) => setNotice(e.message))}
+              >
+                <LogOut size={18} />
+              </button>
+            )}
             <select aria-label="Language" value={language} onChange={(e) => setLanguage(e.target.value)}>
               <option value="en">English</option>
               <option value="ro">Română</option>
@@ -209,18 +216,31 @@ export default function App() {
   }, [notice, setNotice]);
   return (
     <>
+      {DEMO_MODE && <DemoBanner />}
       <Routes>
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/register" element={<AuthPage mode="register" />} />
-        <Route path="/forgot-password" element={<AuthPage mode="forgot" />} />
-        <Route path="/reset-password" element={<AuthPage mode="reset" />} />
-        <Route path="/verify" element={<AuthPage mode="verify" />} />
+        <Route path="/login" element={DEMO_MODE ? <Navigate to="/files" replace /> : <AuthPage />} />
+        <Route
+          path="/register"
+          element={DEMO_MODE ? <Navigate to="/files" replace /> : <AuthPage mode="register" />}
+        />
+        <Route
+          path="/forgot-password"
+          element={DEMO_MODE ? <Navigate to="/files" replace /> : <AuthPage mode="forgot" />}
+        />
+        <Route
+          path="/reset-password"
+          element={DEMO_MODE ? <Navigate to="/files" replace /> : <AuthPage mode="reset" />}
+        />
+        <Route
+          path="/verify"
+          element={DEMO_MODE ? <Navigate to="/files" replace /> : <AuthPage mode="verify" />}
+        />
         <Route path="/share/:token" element={<SharedFile />} />
         <Route element={<Shell />}>
           <Route path="/files" element={<Dashboard />} />
           <Route path="/trash" element={<Dashboard trash />} />
           <Route path="/activity" element={<Activity />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings" element={DEMO_MODE ? <DemoSettings /> : <Settings />} />
           <Route path="/admin" element={<AdminRoute />} />
         </Route>
         <Route path="*" element={<Navigate to="/files" replace />} />

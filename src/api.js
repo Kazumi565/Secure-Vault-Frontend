@@ -1,3 +1,5 @@
+import { DEMO_MODE } from './demo/config';
+
 let csrfToken = '';
 export function setCsrf(value) {
   csrfToken = value || '';
@@ -9,6 +11,7 @@ export function errorMessage(data) {
 }
 
 export async function api(path, { method = 'GET', body, signal, blob = false } = {}) {
+  if (DEMO_MODE) return (await import('./demo/store')).demoApi(path, { method, body, signal, blob });
   const headers = {};
   if (body !== undefined && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
   if (!['GET', 'HEAD'].includes(method)) headers['X-CSRF-Token'] = csrfToken;
@@ -43,6 +46,10 @@ export function saveBlob(blob, filename) {
 }
 
 export function uploadFile(file, { folderId, fileId, onProgress, signal } = {}) {
+  if (DEMO_MODE)
+    return import('./demo/store').then(({ demoUpload }) =>
+      demoUpload(file, { folderId, fileId, onProgress, signal }),
+    );
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', fileId ? `/api/files/${fileId}/versions` : '/api/files');

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, UploadCloud, X } from 'lucide-react';
 import { formatBytes, uploadFile } from './api';
 import { useVault } from './context';
+import { DEMO_MODE } from './demo/config';
 
 export default function UploadQueue({ folderId, limit, onComplete, inputRef, disabled }) {
   const { t } = useVault();
@@ -75,7 +76,10 @@ export default function UploadQueue({ folderId, limit, onComplete, inputRef, dis
         </span>
         <div>
           <strong>{t('Drop files here or choose from your computer')}</strong>
-          <p>{formatBytes(limit)} per file · Encrypted before storage</p>
+          <p>
+            {formatBytes(limit)} per file ·{' '}
+            {DEMO_MODE ? 'Tab memory only · No server upload or encryption' : 'Encrypted before storage'}
+          </p>
         </div>
         <button disabled={disabled} onClick={() => inputRef.current?.click()}>
           {t('Choose files')}
