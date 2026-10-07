@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Download, FolderPlus, MoreHorizontal, RotateCcw, Search, Trash2, Upload, Files } from 'lucide-react';
 import { api, formatBytes } from './api';
-import { ErrorBox, FileIcon, Modal, Pager } from './components';
+import { DownloadLink, ErrorBox, FileIcon, Modal, Pager } from './components';
+import { DEMO_MODE } from './demo/config';
 import { useVault } from './context';
 import UploadQueue from './UploadQueue';
 import FileDetails from './FileDetails';
@@ -126,6 +127,26 @@ export default function Dashboard({ trash = false }) {
         )}
       </div>
       <ErrorBox error={error} />
+      {DEMO_MODE && !trash && !folderId && (
+        <section className="demo-intro" aria-label="Try the demo">
+          <div>
+            <span className="eyebrow">MAKE YOURSELF AT HOME</span>
+            <h2>A little space to try things.</h2>
+            <p>
+              Open a file to edit its tags or explore version history. Add your own sample file, or bring one
+              back from Trash.
+            </p>
+          </div>
+          <div className="demo-steps">
+            <Link to="/trash">
+              Restore a file <span>↗</span>
+            </Link>
+            <Link to="/settings">
+              Explore security <span>↗</span>
+            </Link>
+          </div>
+        </section>
+      )}
       {folder && !trash && (
         <div className="breadcrumbs">
           <button onClick={() => setParams({})}>{t('All files')}</button>
@@ -273,13 +294,14 @@ export default function Dashboard({ trash = false }) {
                         </>
                       ) : (
                         <>
-                          <a
+                          <DownloadLink
                             className="icon-button"
                             aria-label={`${t('Download')} ${file.filename}`}
-                            href={`/api/files/${file.id}/download`}
+                            path={`/files/${file.id}/download`}
+                            filename={file.filename}
                           >
                             <Download size={17} />
-                          </a>
+                          </DownloadLink>
                           <button
                             className="icon-button"
                             aria-label={`${t('Move to trash')} ${file.filename}`}

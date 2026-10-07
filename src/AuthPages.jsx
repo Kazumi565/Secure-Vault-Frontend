@@ -1,3 +1,4 @@
+import { DEMO_MODE } from './demo/config';
 import { useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Files, LockKeyhole, ShieldCheck } from 'lucide-react';
@@ -228,13 +229,17 @@ export function SharedFile() {
           <LockKeyhole />
         </span>
         <h1>{t('Shared file')}</h1>
-        <p className="muted">This link gives you download access for a limited time.</p>
+        <p className="muted">
+          {DEMO_MODE
+            ? 'Local sharing preview. This link works only in the tab where it was created. Use 123456 if a demo code was required.'
+            : 'This link gives you download access for a limited time.'}
+        </p>
         <ErrorBox error={error} />
         <form onSubmit={download}>
           <label>
-            {t('Optional password')}
+            {DEMO_MODE ? 'Demo code (if required)' : t('Optional password')}
             <input
-              type="password"
+              type={DEMO_MODE ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               maxLength={128}
@@ -245,7 +250,7 @@ export function SharedFile() {
           </button>
         </form>
       </div>
-      <Link to="/login">{t('Sign in')}</Link>
+      <Link to={DEMO_MODE ? '/files' : '/login'}>{DEMO_MODE ? 'Back to demo' : t('Sign in')}</Link>
     </main>
   );
 }

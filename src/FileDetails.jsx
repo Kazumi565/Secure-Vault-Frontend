@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, formatBytes, uploadFile } from './api';
-import { ErrorBox, Modal } from './components';
+import { DownloadLink, ErrorBox, Modal } from './components';
+import { DEMO_MODE } from './demo/config';
+import { Link } from 'react-router-dom';
 import { useVault } from './context';
 
 export default function FileDetails({ file, folders, onClose, onChange }) {
@@ -158,9 +160,13 @@ export default function FileDetails({ file, folders, onClose, onChange }) {
                   </p>
                 </div>
                 <div className="button-row">
-                  <a className="button small" href={`/api/files/${file.id}/download?version=${v.number}`}>
+                  <DownloadLink
+                    className="button small"
+                    path={`/files/${file.id}/download?version=${v.number}`}
+                    filename={file.filename}
+                  >
                     {t('Download')}
-                  </a>
+                  </DownloadLink>
                   {!v.current && (
                     <>
                       <button
@@ -192,7 +198,9 @@ export default function FileDetails({ file, folders, onClose, onChange }) {
       {tab === 'Share' && (
         <div>
           <p className="muted">
-            Links allow downloading the current version. Moving this file to trash revokes its links.
+            {DEMO_MODE
+              ? 'Preview links work only in this tab, until refresh. They cannot share files with other people. Expiry and download limits are simulated locally.'
+              : 'Links allow downloading the current version. Moving this file to trash revokes its links.'}
           </p>
           <form
             onSubmit={(e) => {
@@ -231,18 +239,29 @@ export default function FileDetails({ file, folders, onClose, onChange }) {
                 />
               </label>
             </div>
-            <label>
-              {t('Optional password')}
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                maxLength={128}
-                autoComplete="new-password"
-              />
-            </label>
+            {DEMO_MODE ? (
+              <label className="demo-code-option">
+                <input
+                  type="checkbox"
+                  checked={Boolean(password)}
+                  onChange={(e) => setPassword(e.target.checked ? '123456' : '')}
+                />
+                Require demo code: 123456
+              </label>
+            ) : (
+              <label>
+                {t('Optional password')}
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  maxLength={128}
+                  autoComplete="new-password"
+                />
+              </label>
+            )}
             <button className="primary" disabled={busy}>
-              {t('Create link')}
+              {DEMO_MODE ? 'Create preview link' : t('Create link')}
             </button>
           </form>
           {url && (
@@ -260,7 +279,13 @@ export default function FileDetails({ file, folders, onClose, onChange }) {
               >
                 {t('Copy link')}
               </button>
-              <small>Copy it now. The full link is shown only once.</small>
+              {DEMO_MODE ? (
+                <Link className="button" to={new URL(url).hash.slice(1)}>
+                  Open local preview
+                </Link>
+              ) : (
+                <small>Copy it now. The full link is shown only once.</small>
+              )}
             </div>
           )}
           <div className="version-list">
