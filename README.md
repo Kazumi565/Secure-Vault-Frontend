@@ -1,70 +1,44 @@
-# Getting Started with Create React App
+# Secure Vault · Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The React interface for [Secure Vault](https://github.com/Kazumi565/Secure-Vault), with file organization, upload progress, versions, trash, expiring sharing links, and account security controls.
 
-## Available Scripts
+## Development
 
-In the project directory, you can run:
+Requires Node.js 22.12 or later and the matching v2 backend running on port 8000.
 
-### `npm start`
+```powershell
+npm ci
+npm start
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Open http://localhost:3000. Vite proxies `/api` to the backend. For another local API address, set `VAULT_API_TARGET` before starting Vite. No secrets belong in frontend environment variables.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Checks
 
-### `npm test`
+```powershell
+npm run lint
+npm run format:check
+npm test
+npm run build
+npm audit
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+When checked out as the parent repository's `frontend` submodule, browser tests can also start a disposable backend:
 
-### `npm run build`
+```powershell
+$env:VAULT_TEST_PYTHON = (Resolve-Path ..\.venv\Scripts\python.exe).Path
+npx playwright install chromium
+npm run test:e2e
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The test fixture owns ports 3001 and 8001 and uses a temporary database and sample files. `CHROMIUM_EXECUTABLE_PATH` optionally selects an already installed Chromium executable.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Build and serve
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+`npm run build` creates `dist/`. Serve it behind a same-origin `/api` reverse proxy. The included Nginx configuration and Dockerfile are used by the parent repository's Compose stack. `npm run preview` only previews static output; it does not start the backend or provide a production reverse proxy.
 
-### `npm run eject`
+Authentication uses HttpOnly cookies and an in-memory CSRF token. localStorage contains theme/language preferences, not session credentials. Preview object URLs are created lazily and revoked on cleanup.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+English and Romanian interface labels are available; explanatory copy and API errors currently remain English in some views.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Commit this repository before committing the parent repository's updated submodule pointer. Push this commit before pushing the backend change so that fresh clones can retrieve it.
