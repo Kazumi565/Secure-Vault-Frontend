@@ -8,6 +8,8 @@ import { useVault } from './context';
 import UploadQueue from './UploadQueue';
 import FileDetails from './FileDetails';
 
+const PAGE_SIZE = 30;
+
 export default function Dashboard({ trash = false }) {
   const { user, t, setNotice } = useVault();
   const [params, setParams] = useSearchParams();
@@ -51,13 +53,18 @@ export default function Dashboard({ trash = false }) {
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const query = new URLSearchParams({ search, tag, sort, order, offset, trash });
+        const query = new URLSearchParams({ search, tag, sort, order, offset, trash, limit: PAGE_SIZE });
         if (folderId && !trash) query.set('folder_id', folderId);
         const [f, s, d] = await Promise.all([
           api('/files?' + query, { signal: controller.signal }),
           api('/storage', { signal: controller.signal }),
           api('/folders', { signal: controller.signal }),
         ]);
+        if (offset > 0 && offset >= f.total) {
+          setOffset(Math.max(0, Math.floor((f.total - 1) / PAGE_SIZE) * PAGE_SIZE));
+          setSelected([]);
+          return;
+        }
         setFiles(f.items);
         setTotal(f.total);
         setStorage(s);
@@ -344,7 +351,7 @@ export default function Dashboard({ trash = false }) {
             Storage: {formatBytes(storage?.used_bytes)} / {formatBytes(storage?.limit_bytes || 104857600)}
           </span>
         </div>
-        <Pager offset={offset} total={total} setOffset={setOffset} />
+        <Pager offset={offset} total={total} limit={PAGE_SIZE} setOffset={setOffset} />
       </section>
       {details && (
         <FileDetails file={details} folders={folders} onClose={() => setDetails(null)} onChange={refresh} />
